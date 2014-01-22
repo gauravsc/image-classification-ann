@@ -13,7 +13,7 @@ using namespace std;
 #define use_grey_image 1
 #define use_red_image 0
 #define use_blue_image 0
-#define use_green_image 0
+#define use_green_image 1
 #define subtract_mean 1
 
 
@@ -24,7 +24,7 @@ std::map<std::string, string_value> map_string_values;
 
 //Global variables 
 const int threshold_value=30;
-const int train_sample_count=50;
+const int train_sample_count=3000;
 const int test_sample_count=40;
 const int thresh=100;
 const int max_BINARY_value=255;
@@ -186,16 +186,18 @@ Mat preprocess_image(Mat original_image){
   // namedWindow("original image",1);
   // imshow("original image",original_image);
   // namedWindow("foreground",1);
-  
   // imshow("foreground",foreground);
-
+  // imwrite("foreground_4.png",foreground);
+  namedWindow("gray image",1);
+  imshow("gray image",gray_image);
+  imwrite("gray_1.png",gray_image);
   // namedWindow("blue image",1);
   // imshow("blue image",channel[0]);
   // namedWindow("green image",1);
   // imshow("green image",channel[1]);
   // namedWindow("red image",1);
   // imshow("red image",channel[2]);
-  // waitKey(0);
+  waitKey(0);
 
   if(use_grey_image==1){
     return gray_image;
@@ -269,8 +271,8 @@ Mat get_mean_pixel_value(){
 Mat start_testing(CvANN_MLP &classifier){
   string image_name;
   Mat original_image,gray_image,hist_equ_image,dst,dict,resize_hist_image,canny_output;
-  Mat test_data = Mat(test_sample_count, 1024, CV_32F);
-  Mat pred_class = Mat(test_sample_count, 10, CV_32F,cvScalar(0));
+  Mat test_data = Mat::zeros(test_sample_count, 1024, CV_32F);
+  Mat pred_class = Mat::zeros(test_sample_count, 10, CV_32F);
   Mat image_as_vector,drawing;
   
   for (int i=0;i<test_sample_count;i++){
@@ -280,17 +282,21 @@ Mat start_testing(CvANN_MLP &classifier){
     image_name=s.str();
     cout<<image_name<<endl;
     original_image = imread(image_name);
+        cout<<"sending data for testing";
+
     drawing=preprocess_image(original_image);
+
     if(subtract_mean==1){
-      drawing=Mat(get_difference_from_mean(drawing));
-    }
+       drawing=Mat(get_difference_from_mean(drawing));
+     }
+
     image_as_vector= get_vector(drawing,image_as_vector);
     image_as_vector=image_as_vector.t();  
     image_as_vector.row(0).copyTo(test_data.row(i));
-    //cout<<image_as_vector;
+
   }
+
   classifier.predict(test_data,pred_class);
-  //cout<<Mat(pred_class);
   return(pred_class);
 }
 
@@ -307,7 +313,6 @@ Mat get_train_data(Mat train_data,Mat &train_classes) {
   std::vector<int> v=get_classes();
   cout<<"start collecting train data\n";
   for (int i=0;i<train_sample_count;i++){
-    //cout<<i<<endl;
     std::ostringstream s;
     s<<"./train/"<<i+1<<".png";
     image_name=s.str();
@@ -368,10 +373,15 @@ switch(ind){
  * [print_predictions Print the predictions of classes]
  * @param pred_mat
  */
-void print_predictions(Mat pred_mat){
+float print_predictions(Mat pred_mat, Mat train_classes){
+
+  cout<<"inside print prediction";
   vector<int> pred_ind;
+  vector<int> actual_class;
+  float sum;
+  int max,ind;
   for (int i =0;i<pred_mat.rows;i++){
-    int max=-10000,ind=-1;
+     max=-10000,ind=-1;
     for(int j=0;j<pred_mat.cols;j++){
       if(pred_mat.at<float>(i,j)>max){
         max=pred_mat.at<float>(i,j);
@@ -380,11 +390,29 @@ void print_predictions(Mat pred_mat){
     }
     pred_ind.push_back(ind);
   }
-
-  for(int i=0;i<pred_ind.size();i++){
-    cout<<get_name_class(pred_ind[i])<<endl;
+  for (int k =0;k<train_classes.rows;k++){
+     max=-10000;
+     ind=-1;
+    for(int l=0;l<train_classes.cols;l++){
+      if(train_classes.at<float>(k,l)>max){
+        max=train_classes.at<float>(k,l);
+        ind=l;
+      }
+    }
+    actual_class.push_back(ind);
   }
 
+
+  
+  for (int i=0;i<test_sample_count;i++){
+    if(actual_class[i]==pred_ind[i])
+      sum=sum+1;
+  }
+  
+  for(int i=0;i<pred_ind.size();i++){
+    cout<<"predicted: "<<get_name_class(pred_ind[i])<<" actual: "<<get_name_class(actual_class[i])<<endl;
+  }
+return sum/test_sample_count;
 
 }
 
@@ -396,20 +424,20 @@ void print_predictions(Mat pred_mat){
  * @return
  */
  int main( int argc, char** argv ){
-  Mat train_data = Mat(train_sample_count, 1024, CV_32F);
-  Mat train_classes = Mat(train_sample_count, 10, CV_32F,cvScalar(0));
-  Mat neural_layers = Mat(5, 1, CV_32SC1);
+  Mat train_data = Mat::zeros(train_sample_count, 1024, CV_32F);
+  Mat train_classes = Mat::zeros(train_sample_count, 10, CV_32F);
+  Mat neural_layers = Mat(4, 1, CV_32SC1);
   CvANN_MLP classifier;
   neural_layers.at<int>(0,0)=1024;
-  neural_layers.at<int>(1,0)=4000;
+  neural_layers.at<int>(1,0)=2000;
   neural_layers.at<int>(2,0)=2000;
-  neural_layers.at<int>(3,0)=2000;
-  neural_layers.at<int>(4,0)=10;
-  Mat sample_wts = Mat(train_sample_count, 1, CV_32FC1,cvScalar(1));
+  //neural_layers.at<int>(3,0)=2000;
+  neural_layers.at<int>(3,0)=10;
+  Mat sample_wts =  Mat::ones(1,train_sample_count,CV_32FC1);
   mean_mat=get_mean_pixel_value();
   Mat train_data_temp=get_train_data(train_data,train_classes);
   train_data_temp.convertTo(train_data,CV_32F);
-  classifier.create(neural_layers);
+  classifier.create(neural_layers,CvANN_MLP::SIGMOID_SYM, 1, 1);
   //cout<<train_classes;
 
   /**
@@ -418,19 +446,7 @@ void print_predictions(Mat pred_mat){
    */
   classifier.train(train_data,
    train_classes,
-   sample_wts,
-   Mat(),
-   CvANN_MLP_TrainParams(
-     cvTermCriteria(
-       CV_TERMCRIT_ITER+CV_TERMCRIT_EPS,
-       100000,
-       1.0
-       ),
-     CvANN_MLP_TrainParams::BACKPROP,
-     0.001,
-     0.05
-     )
-   );
+   sample_wts);
 
 /*
 Testing starts below
@@ -438,11 +454,10 @@ Testing starts below
   * start testing inside the test function
   *
   */
+ 
  Mat pred_class=start_testing(classifier);
- print_predictions(pred_class);
-
-
-
+ cout<<"finished testing";
+ cout<<"Accuracy is: "<<print_predictions(pred_class,train_classes);
 
 
 return 0;
