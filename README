@@ -1,0 +1,13 @@
+This source is designed for Image Data Mining Project.
+
+Source contains 2 files:
+1. neural_network_train_test.cpp: It deals with testing CIFAR-10 dataset.
+2. neural_network_ocr.cpp: It performs training and testing on MNIST dataset.
+
+Prerequisites requires:
+The code requires opencv machine learning library to perfrom training and testing using neural networks.
+
+The CIFAR-10 dataset can be downlaoded from here(http://www.cs.toronto.edu/~kriz/cifar.html), while MNIST dataset can be downloaded from here(http://yann.lecun.com/exdb/mnist/)
+
+
+
