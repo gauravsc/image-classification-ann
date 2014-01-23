@@ -39,18 +39,18 @@ Mat mean_mat;
  * @param  image_as_vector
  * @return
  */
-Mat get_vector(Mat image, Mat image_as_vector){
-	int sz = image.cols*image.rows;
-	image_as_vector=Mat(image.reshape(1,1024));
-	return image_as_vector;
-}
+ Mat get_vector(Mat image, Mat image_as_vector){
+   int sz = image.cols*image.rows;
+   image_as_vector=Mat(image.reshape(1,1024));
+   return image_as_vector;
+ }
 
 /**
  * [get_foreground Calculates the foreground from the given image using grabCut function of openCV]
  * @param  image
  * @return
  */
-Mat get_foreground(Mat image){
+ Mat get_foreground(Mat image){
   Mat result,bgModel,fgModel;
   Rect rectangle(32,32,32,32);
   grabCut(image, result, rectangle, bgModel, fgModel, 1, GC_INIT_WITH_RECT); 
@@ -63,8 +63,8 @@ Mat get_foreground(Mat image){
 /**
  * [initialize_class_enums Initilize enum for mapping string names with indexes of classes in the labelled dataset]
  */
-void initialize_class_enums()
-{
+ void initialize_class_enums()
+ {
   map_string_values["airplane"]=airplane;
   map_string_values["cat"]=cat;
   map_string_values["automobile"]=automobile;
@@ -81,7 +81,7 @@ void initialize_class_enums()
 /**
  * 
  */
-vector<int> get_classes(){
+ vector<int> get_classes(){
   std::ifstream  data("trainLabels.csv");
   vector<int> v ;
   int c;
@@ -138,7 +138,7 @@ vector<int> get_classes(){
  * @param  image
  * @return
  */
-Mat get_border_extended(Mat image){
+ Mat get_border_extended(Mat image){
   int top, bottom, left, right;
   Mat dst;
   Scalar value;
@@ -160,7 +160,7 @@ Mat get_border_extended(Mat image){
  * @param  original_image
  * @return
  */
-Mat preprocess_image(Mat original_image){
+ Mat preprocess_image(Mat original_image){
   Mat gray_image,hist_equ_image,dst,dict,resize_hist_image,canny_output,channel[3],foreground,bin_image;
   vector<vector<Point> > contours;
   vector<Vec4i> hierarchy;
@@ -190,7 +190,7 @@ Mat preprocess_image(Mat original_image){
   // imwrite("foreground_4.png",foreground);
   namedWindow("gray image",1);
   imshow("gray image",gray_image);
-  imwrite("gray_1.png",gray_image);
+  imwrite("gray_5.png",gray_image);
   // namedWindow("blue image",1);
   // imshow("blue image",channel[0]);
   // namedWindow("green image",1);
@@ -222,7 +222,7 @@ Mat preprocess_image(Mat original_image){
  * @param  image
  * @return
  */
-Mat get_difference_from_mean(Mat image){
+ Mat get_difference_from_mean(Mat image){
   Mat image1;
   //cout<<"inside mean difference calculator";
   image.convertTo(image1,CV_32SC1);
@@ -235,7 +235,7 @@ Mat get_difference_from_mean(Mat image){
  * [get_mean_pixel_value description]
  * @return
  */
-Mat get_mean_pixel_value(){
+ Mat get_mean_pixel_value(){
   Mat original_image,gray_image,hist_equ_image,dst,dict,resize_hist_image,canny_output;
   Mat mean_mat,temp,prev_mean_mat;
   string image_name;
@@ -268,7 +268,7 @@ Mat get_mean_pixel_value(){
  * [start_testing description]
  * @param classifier
  */
-Mat start_testing(CvANN_MLP &classifier){
+ Mat start_testing(CvANN_MLP &classifier){
   string image_name;
   Mat original_image,gray_image,hist_equ_image,dst,dict,resize_hist_image,canny_output;
   Mat test_data = Mat::zeros(test_sample_count, 1024, CV_32F);
@@ -282,22 +282,22 @@ Mat start_testing(CvANN_MLP &classifier){
     image_name=s.str();
     cout<<image_name<<endl;
     original_image = imread(image_name);
-        cout<<"sending data for testing";
+    cout<<"sending data for testing";
 
     drawing=preprocess_image(original_image);
 
     if(subtract_mean==1){
-       drawing=Mat(get_difference_from_mean(drawing));
-     }
+     drawing=Mat(get_difference_from_mean(drawing));
+   }
 
-    image_as_vector= get_vector(drawing,image_as_vector);
-    image_as_vector=image_as_vector.t();  
-    image_as_vector.row(0).copyTo(test_data.row(i));
+   image_as_vector= get_vector(drawing,image_as_vector);
+   image_as_vector=image_as_vector.t();  
+   image_as_vector.row(0).copyTo(test_data.row(i));
 
-  }
+ }
 
-  classifier.predict(test_data,pred_class);
-  return(pred_class);
+ classifier.predict(test_data,pred_class);
+ return(pred_class);
 }
 
 /**
@@ -306,7 +306,7 @@ Mat start_testing(CvANN_MLP &classifier){
  * @param  train_classes
  * @return
  */
-Mat get_train_data(Mat train_data,Mat &train_classes) {
+ Mat get_train_data(Mat train_data,Mat &train_classes) {
   Mat original_image,gray_image,hist_equ_image,dst,dict,resize_hist_image,canny_output;
   Mat image_as_vector,drawing;
   string image_name;
@@ -335,45 +335,45 @@ Mat get_train_data(Mat train_data,Mat &train_classes) {
  * @param  ind
  * @return
  */
-string get_name_class(int ind){
-switch(ind){
-          case airplane: 
-          return("airplane");
-          break;
-          case automobile: 
-          return("automobile");
-          break;
-          case bird: 
-          return("bird");
-          break;
-          case cat: 
-          return("cat");
-          break;
-          case deer: 
-          return("deer");
-          break;
-          case dog: 
-          return("dog");
-          break;
-          case frog: 
-          return("frog");
-          break;
-          case horse: 
-          return("horse");
-          break;
-          case ship: 
-          return("ship");
-          break;
-          case truck: 
-          return("truck");
-        }
+ string get_name_class(int ind){
+  switch(ind){
+    case airplane: 
+    return("airplane");
+    break;
+    case automobile: 
+    return("automobile");
+    break;
+    case bird: 
+    return("bird");
+    break;
+    case cat: 
+    return("cat");
+    break;
+    case deer: 
+    return("deer");
+    break;
+    case dog: 
+    return("dog");
+    break;
+    case frog: 
+    return("frog");
+    break;
+    case horse: 
+    return("horse");
+    break;
+    case ship: 
+    return("ship");
+    break;
+    case truck: 
+    return("truck");
+  }
 }
 
 /**
  * [print_predictions Print the predictions of classes]
  * @param pred_mat
  */
-float print_predictions(Mat pred_mat, Mat train_classes){
+ float print_predictions(Mat pred_mat, Mat train_classes){
 
   cout<<"inside print prediction";
   vector<int> pred_ind;
@@ -381,37 +381,37 @@ float print_predictions(Mat pred_mat, Mat train_classes){
   float sum;
   int max,ind;
   for (int i =0;i<pred_mat.rows;i++){
-     max=-10000,ind=-1;
-    for(int j=0;j<pred_mat.cols;j++){
-      if(pred_mat.at<float>(i,j)>max){
-        max=pred_mat.at<float>(i,j);
-        ind=j;
-      }
+   max=-10000,ind=-1;
+   for(int j=0;j<pred_mat.cols;j++){
+    if(pred_mat.at<float>(i,j)>max){
+      max=pred_mat.at<float>(i,j);
+      ind=j;
     }
-    pred_ind.push_back(ind);
   }
-  for (int k =0;k<train_classes.rows;k++){
-     max=-10000;
-     ind=-1;
-    for(int l=0;l<train_classes.cols;l++){
-      if(train_classes.at<float>(k,l)>max){
-        max=train_classes.at<float>(k,l);
-        ind=l;
-      }
-    }
-    actual_class.push_back(ind);
+  pred_ind.push_back(ind);
+}
+for (int k =0;k<train_classes.rows;k++){
+ max=-10000;
+ ind=-1;
+ for(int l=0;l<train_classes.cols;l++){
+  if(train_classes.at<float>(k,l)>max){
+    max=train_classes.at<float>(k,l);
+    ind=l;
   }
+}
+actual_class.push_back(ind);
+}
 
 
-  
-  for (int i=0;i<test_sample_count;i++){
-    if(actual_class[i]==pred_ind[i])
-      sum=sum+1;
-  }
-  
-  for(int i=0;i<pred_ind.size();i++){
-    cout<<"predicted: "<<get_name_class(pred_ind[i])<<" actual: "<<get_name_class(actual_class[i])<<endl;
-  }
+
+for (int i=0;i<test_sample_count;i++){
+  if(actual_class[i]==pred_ind[i])
+    sum=sum+1;
+}
+
+for(int i=0;i<pred_ind.size();i++){
+  cout<<"predicted: "<<get_name_class(pred_ind[i])<<" actual: "<<get_name_class(actual_class[i])<<endl;
+}
 return sum/test_sample_count;
 
 }
@@ -444,9 +444,9 @@ return sum/test_sample_count;
    * classifier is supplied with the labelled image dataset along with the parameters for Neural Netowrk
    * It used backpropogation algorithm and uses both number of iterations and EPS as the criteria as target functions 
    */
-  classifier.train(train_data,
-   train_classes,
-   sample_wts);
+   classifier.train(train_data,
+     train_classes,
+     sample_wts);
 
 /*
 Testing starts below
@@ -454,11 +454,11 @@ Testing starts below
   * start testing inside the test function
   *
   */
- 
- Mat pred_class=start_testing(classifier);
- cout<<"finished testing";
- cout<<"Accuracy is: "<<print_predictions(pred_class,train_classes);
+  
+  Mat pred_class=start_testing(classifier);
+  cout<<"finished testing";
+  cout<<"Accuracy is: "<<print_predictions(pred_class,train_classes);
 
 
-return 0;
+  return 0;
 }

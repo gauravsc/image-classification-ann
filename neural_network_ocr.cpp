@@ -46,27 +46,17 @@ Mat mean_mat = Mat::zeros(28, 28, CV_32F);
  * @return
  */
  Mat get_vector(Mat &image){
-
    return image.reshape(0,784);
  }
 
-// /**
-//  * [get_foreground Calculates the foreground from the given image using grabCut function of openCV]
-//  * @param  image
-//  * @return
-//  */
-// Mat get_foreground(Mat image){
-//   Mat result,bgModel,fgModel;
-//   Rect rectangle(32,32,32,32);
-//   grabCut(image, result, rectangle, bgModel, fgModel, 1, GC_INIT_WITH_RECT); 
-//   compare(result,cv::GC_PR_FGD,result,cv::CMP_EQ);
-//   Mat foreground(image.size(),CV_8UC3,cv::Scalar(0,0,0));
-//   image.copyTo(foreground,result);
-//   return Mat(foreground, rectangle);
-// }
 
 
 
+/**
+ * [preprocess_image It preprocess the image so that it can be fed to the classifier for training]
+ * @param  original_image [description]
+ * @return                [description]
+ */
  Mat preprocess_image(Mat original_image){
   Mat bin_image;
   threshold(original_image, bin_image, 5, 1,0);
@@ -75,8 +65,10 @@ Mat mean_mat = Mat::zeros(28, 28, CV_32F);
 }
 
 
-
-void prepare_train_data(){
+/**
+ * [prepare_train_data It prepares the dataset for training]
+ */
+ void prepare_train_data(){
   std::ifstream  data("train_ocr.csv");
   int c;
   Mat image,vector_image,image_1,image_2;
@@ -122,8 +114,10 @@ void prepare_train_data(){
 
 
 
-
-void calculate_mean(){
+/**
+ * [calculate_mean It calculates the mean matrix for all training images]
+ */
+ void calculate_mean(){
   std::ifstream  data("train_ocr.csv");
   int c;
   Mat image,vector_image,image_1,image_2;
@@ -143,7 +137,7 @@ void calculate_mean(){
     { 
       if(count==0){
         count=1;
-       
+        
       }else{
         c=atoi(cell.c_str());
         image.at<unsigned char>(0,col_index)=c;
@@ -163,36 +157,40 @@ void calculate_mean(){
   return ;
 }
 
-
-vector<int> get_predicted_classes(Mat mat_classification){
+/**
+ * [get_predicted_classes It returns the predicted classes from the classifier output matrix]
+ */
+ vector<int> get_predicted_classes(Mat mat_classification){
   vector<int> c;
   for(int i=0;i<mat_classification.rows;i++){
     int max=-10000,ind=-1;
     for(int j=0;j<mat_classification.cols;j++){
       if(mat_classification.at<float>(i,j)>max){
-              max=mat_classification.at<float>(i,j);
-              ind=j;
+        max=mat_classification.at<float>(i,j);
+        ind=j;
       }
       
 
     }
     c.push_back(ind);
   }
-return c;
+  return c;
 }
 
-
-void prepare_test_data(){
- std::ifstream  data("train_ocr.csv");
-  int c;
-  Mat image,vector_image,image_1,image_2;
-  std::string line;
-  int count=0;
-  std::getline(data,line);
-  int row_index=0,test_count=0;
-  cout<<"inside prepare test data function"<<endl;
-  while(std::getline(data,line) && test_count<train_sample_count+test_sample_count)
-  {
+/**
+ * [prepare_test_data It prepares test dataset for testing on the trained dataset]
+ */
+ void prepare_test_data(){
+   std::ifstream  data("train_ocr.csv");
+   int c;
+   Mat image,vector_image,image_1,image_2;
+   std::string line;
+   int count=0;
+   std::getline(data,line);
+   int row_index=0,test_count=0;
+   cout<<"inside prepare test data function"<<endl;
+   while(std::getline(data,line) && test_count<train_sample_count+test_sample_count)
+   {
 
     if(test_count<train_sample_count){
       test_count++;
@@ -224,12 +222,17 @@ void prepare_test_data(){
     cout<<row_index<<endl;
     image_2.row(0).copyTo(test_data.row(row_index));
     row_index++;    
-    } 
- return ;
+  } 
+  return ;
 }
 
 
-float get_accuracy(){
+
+/**
+ * [get_accuracy it calculates the accuracy of the prediction on the test dataset]
+ * @return [description]
+ */
+ float get_accuracy(){
   vector<int> actual_classes=get_predicted_classes(test_classes);
   vector<int> predict_classes=get_predicted_classes(pred_classes);
   for(int i=0;i<actual_classes.size();i++){
@@ -243,7 +246,7 @@ float get_accuracy(){
 
   }
 
-return sum/test_sample_count;
+  return sum/test_sample_count;
 
 }
 
